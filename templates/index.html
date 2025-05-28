@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart AI ChatBot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, rgb(215, 244, 172), rgb(248, 188, 188));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      background-color: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 700px;
+      height: 90%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      background-color: #1976d2;
+      color: white;
+      padding: 10px 0;
+      margin: 0;
+      font-size: 24px;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+    }
+
+    .message-wrapper {
+      display: flex;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+
+    .message-wrapper.left {
+      flex-direction: row;
+    }
+
+    .message-wrapper.right {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin: 0 10px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background-color: #d0f0c0;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      background-color: #ffcdd2;
+      border-bottom-left-radius: 0;
+    }
+
+    .assistant {
+      background-color: #fff3cd;
+      border-bottom-left-radius: 0;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      color: #555;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    #input-area {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ccc;
+    }
+
+    #userInput {
+      flex-grow: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #90caf9;
+      cursor: not-allowed;
+    }
+
+    #micBtn {
+      background-color:rgb(238, 248, 238);
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+
+    #micBtn.recording {
+      background-color: #d32f2f;
+      animation: blink 1s infinite;
+    }
+
+    .typing-indicator {
+      font-style: italic;
+      font-size: 14px;
+      color: #888;
+      margin-left: 10px;
+      margin-top: 5px;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h1>👩🏻‍💻Smart AI ChatBot 🤖</h1>
+    <div id="messages"></div>
+    <div id="input-area">
+      <input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off" />
+      <button id="micBtn" title="Speak to chat 🎤">🎤</button>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+
+    const userAvatar = "https://cdn-icons-png.flaticon.com/512/4333/4333609.png";
+    const botAvatar = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
+    const assistantAvatar = "https://cdn-icons-png.flaticon.com/512/4712/4712053.png";
+
+    function addMessage(text, className) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper';
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message ' + className;
+      msgDiv.innerHTML = `${text}<div class="timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`;
+
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+
+      if (className === 'user') {
+        avatar.src = userAvatar;
+        wrapper.classList.add('right');
+      } else if (className === 'assistant') {
+        avatar.src = assistantAvatar;
+        wrapper.classList.add('left');
+      } else {
+        avatar.src = botAvatar;
+        wrapper.classList.add('left');
+      }
+
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(msgDiv);
+      messagesDiv.appendChild(wrapper);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const typing = document.createElement('div');
+      typing.id = 'typing-indicator';
+      typing.className = 'message-wrapper left';
+      typing.innerHTML = `
+        <img class="avatar" src="${botAvatar}" />
+        <div class="typing-indicator">Bot is typing...</div>`;
+      messagesDiv.appendChild(typing);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      userInput.value = '';
+      sendBtn.disabled = true;
+      addTypingIndicator();
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        removeTypingIndicator();
+
+        if (response.ok) {
+          const data = await response.json();
+          addMessage(data.reply, 'bot');
+        } else {
+          addMessage('Error communicating with server.', 'bot');
+        }
+      } catch (error) {
+        removeTypingIndicator();
+        addMessage('Network error.', 'bot');
+      }
+
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Voice recognition support
+    let recognizing = false;
+    let recognition;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        recognizing = true;
+        micBtn.classList.add('recording');
+      };
+
+      recognition.onend = () => {
+        recognizing = false;
+        micBtn.classList.remove('recording');
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim();
+        userInput.value = transcript;
+        sendMessage();
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (recognizing) {
+          recognition.stop();
+        } else {
+          recognition.start();
+        }
+      });
+    } else {
+      micBtn.disabled = true;
+      micBtn.title = "Speech Recognition not supported in this browser.";
+    }
+  </script>
+</body>
+</html>
